@@ -1,4 +1,6 @@
+import React, { useState, useEffect } from "react";
 import { Menu, Phone, Mail } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   Accordion,
@@ -75,36 +77,92 @@ const Navbar1 = ({
     email: "info@bygroup.net.cn",
   },
 }: Navbar1Props) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("#home");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 20);
+
+      // Update active section based on scroll position
+      const sections = menu.map(item => item.url);
+      let currentSection = "#home";
+      
+      for (const section of sections) {
+        const element = document.querySelector(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            currentSection = section;
+            break;
+          }
+        }
+      }
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [menu]);
   
   const scrollToSection = (url: string) => {
     const element = document.querySelector(url);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const navHeight = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
 
   return (
-    <section className="py-4 bg-white border-b border-gray-100 sticky top-0 z-50">
+    <motion.section 
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled 
+          ? "py-2 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50" 
+          : "py-4 bg-white/90 backdrop-blur-sm border-b border-gray-100"
+      }`}
+    >
       <div className="container mx-auto px-4">
-        <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6">
-            <a 
+        <nav className="hidden justify-between lg:flex items-center">
+          <div className="flex items-center gap-8">
+            <motion.a 
               href={logo.url} 
-              className="flex items-center gap-2"
+              className="flex items-center gap-3 group cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
                 scrollToSection(logo.url);
               }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-lg">
+              <motion.div 
+                className="w-10 h-10 bg-gradient-to-br from-black to-gray-800 text-white flex items-center justify-center font-bold text-lg rounded-lg shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                whileHover={{ 
+                  background: "linear-gradient(135deg, #1f2937 0%, #000000 100%)",
+                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)"
+                }}
+              >
                 BY
-              </div>
-              <span className="text-lg font-semibold">{logo.title}</span>
-            </a>
-            <div className="flex items-center">
+              </motion.div>
+              <span className="text-xl font-light tracking-wide text-gray-900 group-hover:text-black transition-colors">
+                年轻化创新集团
+              </span>
+            </motion.a>
+            <div className="flex items-center ml-8">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item, scrollToSection))}
+                  {menu.map((item) => renderMenuItem(item, scrollToSection, activeSection))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -120,37 +178,48 @@ const Navbar1 = ({
                 <span>{contact.email}</span>
               </div>
             </div>
-            <LiquidButton
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection("#contact");
-              }}
-              className="h-10 px-5"
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              开始合作
-            </LiquidButton>
+              <LiquidButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection("#contact");
+                }}
+                className="h-10 px-5"
+              >
+                开始合作
+              </LiquidButton>
+            </motion.div>
           </div>
         </nav>
+        
+        {/* Mobile Navigation */}
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
-            <a 
+            <motion.a 
               href={logo.url} 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 group cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
                 scrollToSection(logo.url);
               }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-lg">
+              <div className="w-9 h-9 bg-gradient-to-br from-black to-gray-800 text-white flex items-center justify-center font-bold text-base rounded-lg shadow-md">
                 BY
               </div>
-              <span className="text-lg font-semibold">{logo.title}</span>
-            </a>
+              <span className="text-lg font-light text-gray-900">年轻化创新集团</span>
+            </motion.a>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button variant="outline" size="icon" className="border-2 hover:border-black transition-colors">
+                    <Menu className="size-4" />
+                  </Button>
+                </motion.div>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
@@ -173,8 +242,8 @@ const Navbar1 = ({
                   </SheetTitle>
                 </SheetHeader>
                 <div className="my-6 flex flex-col gap-6">
-                  <div className="flex w-full flex-col gap-4">
-                    {menu.map((item) => renderMobileMenuItem(item, scrollToSection))}
+                  <div className="flex w-full flex-col gap-2">
+                    {menu.map((item) => renderMobileMenuItem(item, scrollToSection, activeSection))}
                   </div>
                   <div className="border-t py-4">
                     <div className="grid grid-cols-2 justify-start">
@@ -220,11 +289,11 @@ const Navbar1 = ({
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
-const renderMenuItem = (item: MenuItem, scrollToSection: (url: string) => void) => {
+const renderMenuItem = (item: MenuItem, scrollToSection: (url: string) => void, activeSection: string) => {
   if (item.items) {
     return (
       <NavigationMenuItem key={item.title} className="text-muted-foreground">
@@ -263,22 +332,39 @@ const renderMenuItem = (item: MenuItem, scrollToSection: (url: string) => void) 
     );
   }
 
+  const isActive = activeSection === item.url;
+  
   return (
-    <a
+    <motion.a
       key={item.title}
-      className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground cursor-pointer"
+      className={`group relative inline-flex h-10 w-max items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
+        isActive 
+          ? "text-black bg-gray-100 shadow-sm" 
+          : "text-gray-600 hover:text-black hover:bg-gray-50"
+      }`}
       href={item.url}
       onClick={(e) => {
         e.preventDefault();
         scrollToSection(item.url);
       }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       {item.title}
-    </a>
+      {isActive && (
+        <motion.div
+          className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-black rounded-full"
+          layoutId="activeIndicator"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
+      )}
+    </motion.a>
   );
 };
 
-const renderMobileMenuItem = (item: MenuItem, scrollToSection: (url: string) => void) => {
+const renderMobileMenuItem = (item: MenuItem, scrollToSection: (url: string) => void, activeSection?: string) => {
   if (item.items) {
     return (
       <Accordion key={item.title} type="single" collapsible className="w-full">
@@ -314,18 +400,24 @@ const renderMobileMenuItem = (item: MenuItem, scrollToSection: (url: string) => 
     );
   }
 
+  const isActive = activeSection === item.url;
+  
   return (
-    <a 
+    <motion.a 
       key={item.title} 
       href={item.url} 
-      className="font-semibold cursor-pointer block py-2"
+      className={`font-medium cursor-pointer block py-3 px-2 rounded-lg transition-colors ${
+        isActive ? "text-black bg-gray-100" : "text-gray-700 hover:text-black hover:bg-gray-50"
+      }`}
       onClick={(e) => {
         e.preventDefault();
         scrollToSection(item.url);
       }}
+      whileHover={{ scale: 1.01, x: 4 }}
+      whileTap={{ scale: 0.99 }}
     >
       {item.title}
-    </a>
+    </motion.a>
   );
 };
 
