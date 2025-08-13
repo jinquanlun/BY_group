@@ -1,4 +1,4 @@
-import React from 'react'
+// import React from 'react'
 import styled from 'styled-components'
 import { Navbar1 } from './components/ui/navbar'
 import HomeSection from './components/HomeSection'
